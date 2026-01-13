@@ -1,0 +1,51 @@
+-- Table: branches
+-- Purpose: almacena las sucursales de la cooperativa
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS branches (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Datos de ejemplo para poblar branches (ajusta según tus sucursales reales):
+INSERT INTO branches (name) VALUES ('Casa Matriz') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO branches (name) VALUES ('Sucursal Norte') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO branches (name) VALUES ('Sucursal Sur') ON DUPLICATE KEY UPDATE name = name;
+
+CREATE TABLE IF NOT EXISTS areas (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Datos de ejemplo para poblar areas:
+INSERT INTO areas (name) VALUES ('Directiva') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO areas (name) VALUES ('Informática') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO areas (name) VALUES ('Recursos Humanos') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO areas (name) VALUES ('Contabilidad') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO areas (name) VALUES ('Caja') ON DUPLICATE KEY UPDATE name = name;
+INSERT INTO areas (name) VALUES ('Negocios') ON DUPLICATE KEY UPDATE name = name;
+
+-- Tabla: users
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NULL,
+  role VARCHAR(50) DEFAULT 'user',
+  -- referencia a areas.id (nullable)
+  area_id INT UNSIGNED NULL,
+  -- referencia a sucursales.id (nullable)
+  branch_id INT UNSIGNED NULL,
+  -- nuevo: nombre completo
+  full_name VARCHAR(255) NULL,
+  -- cargo / puesto dentro de la cooperativa
+  cargo VARCHAR(255) NULL,
+  -- ruta/nombre del archivo de foto de perfil
+  profile_photo VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- Foreign keys
+  CONSTRAINT fk_users_area FOREIGN KEY (area_id) REFERENCES areas(id) ON DELETE SET NULL,
+  CONSTRAINT fk_users_branch FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
+
