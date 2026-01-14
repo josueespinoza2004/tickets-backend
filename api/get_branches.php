@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../db_connect.php';
+require_once __DIR__ . '/../auth/app_auth.php';
+
+authenticate();
 
 try {
     // Priorizamos 'Nueva Guinea' en el ordenamiento
