@@ -62,3 +62,28 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   UNIQUE KEY unique_token (token),
   CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: incidents
+-- Purpose: Store tickets/issues reported by users
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS incidents (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  incident_date DATE NOT NULL,
+  priority ENUM('Baja', 'Media', 'Alta') NOT NULL DEFAULT 'Baja',
+  status ENUM('Sin Empezar', 'En Curso', 'Listo') NOT NULL DEFAULT 'Sin Empezar',
+  creator_id INT UNSIGNED NOT NULL,
+  assigned_to VARCHAR(255) NULL,
+  branch_id INT UNSIGNED NULL,
+  area_id INT UNSIGNED NULL,
+  evidence_file VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  CONSTRAINT fk_incidents_creator FOREIGN KEY (creator_id) REFERENCES users(id),
+  CONSTRAINT fk_incidents_assignee FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidents_branch FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidents_area FOREIGN KEY (area_id) REFERENCES areas(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
