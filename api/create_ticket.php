@@ -30,6 +30,13 @@ try {
     $description = $_POST['description'] ?? '';
     $incident_date = $_POST['incident_date'] ?? null;
     $priority = $_POST['priority'] ?? 'Baja';
+    $status = $_POST['status'] ?? 'Sin Empezar'; // Default, but user can override
+
+    $assigned_to = $_POST['assigned_to'] ?? null;
+    if (is_array($assigned_to)) {
+        $assigned_to = implode(',', $assigned_to);
+    }
+
     $branch_id = $_POST['branch_id'] ?? null;
     $area_id = $_POST['area_id'] ?? null;
 
@@ -54,8 +61,8 @@ try {
         }
     }
 
-    $sql = "INSERT INTO incidents (title, description, incident_date, priority, branch_id, area_id, creator_id, evidence_file) 
-            VALUES (:title, :description, :incident_date, :priority, :branch_id, :area_id, :creator_id, :evidence_file)";
+    $sql = "INSERT INTO incidents (title, description, incident_date, priority, status, assigned_to, branch_id, area_id, creator_id, evidence_file) 
+            VALUES (:title, :description, :incident_date, :priority, :status, :assigned_to, :branch_id, :area_id, :creator_id, :evidence_file)";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -63,6 +70,8 @@ try {
         ':description' => $description,
         ':incident_date' => $incident_date,
         ':priority' => $priority,
+        ':status' => $status,
+        ':assigned_to' => $assigned_to,
         ':branch_id' => !empty($branch_id) ? $branch_id : null,
         ':area_id' => !empty($area_id) ? $area_id : null,
         ':creator_id' => $userId,
