@@ -82,7 +82,6 @@ CREATE TABLE IF NOT EXISTS incidents (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
   CONSTRAINT fk_incidents_creator FOREIGN KEY (creator_id) REFERENCES users(id),
-  CONSTRAINT fk_incidents_assignee FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
   CONSTRAINT fk_incidents_branch FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL,
   CONSTRAINT fk_incidents_area FOREIGN KEY (area_id) REFERENCES areas(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
