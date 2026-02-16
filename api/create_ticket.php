@@ -1,6 +1,9 @@
 <?php
 // api/create_ticket.php
 
+// Suprimir warnings para que no rompan el JSON
+error_reporting(E_ERROR | E_PARSE);
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -48,16 +51,27 @@ try {
     $evidencePath = null;
     if (isset($_FILES['evidence_file']) && $_FILES['evidence_file']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = __DIR__ . '/../uploads/';
+        
+        // Crear directorio si no existe
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0777, true)) {
+                throw new Exception("No se pudo crear el directorio de uploads");
+            }
+        }
+        
+        // Verificar que el directorio sea escribible
+        if (!is_writable($uploadDir)) {
+            throw new Exception("El directorio de uploads no tiene permisos de escritura");
         }
 
         $fileName = uniqid() . '_' . basename($_FILES['evidence_file']['name']);
         $targetPath = $uploadDir . $fileName;
 
         if (move_uploaded_file($_FILES['evidence_file']['tmp_name'], $targetPath)) {
-            // Save relative path or full URL. Usually relative to be served via separate endpoint or static
+            // Save relative path
             $evidencePath = 'uploads/' . $fileName;
+        } else {
+            throw new Exception("Error al mover el archivo subido");
         }
     }
 
