@@ -63,12 +63,21 @@ try {
                         <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden;'>
                             <!-- Header con logo -->
                             <tr>
-                                <td style='padding: 40px 40px 30px 40px; text-align: center; background-color: #ffffff;'>
+                                <td style='padding: 40px 40px 30px 40px; background-color: #ffffff;'>
                                     <table width='100%' cellpadding='0' cellspacing='0'>
                                         <tr>
-                                            <td style='text-align: center;'>
-                                                <h1 style='margin: 0; color: #1e3a8a; font-size: 28px; font-weight: bold;'>Gestión de Tickets</h1>
-                                                <p style='margin: 5px 0 0 0; color: #6b7280; font-size: 16px;'>COOPEFACSA R.L.</p>
+                                            <td style='vertical-align: middle; text-align: center;'>
+                                                <table cellpadding='0' cellspacing='0' style='display: inline-block;'>
+                                                    <tr>
+                                                        <td style='vertical-align: middle; padding-right: 15px;'>
+                                                            <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDCa-jCPCvDE4kHKJP3pKyfMZjTqcwsxLliQ&s' alt='COOPEFACSA Logo' style='width: 70px; height: auto; display: block;' />
+                                                        </td>
+                                                        <td style='vertical-align: middle; text-align: left;'>
+                                                            <h1 style='margin: 0; color: #1e3a8a; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets</h1>
+                                                            <p style='margin: 5px 0 0 0; color: #6b7280; font-size: 16px; line-height: 1.2;'>COOPEFACSA R.L.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                             </td>
                                         </tr>
                                     </table>
