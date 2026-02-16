@@ -74,7 +74,7 @@ try {
                                                         </td>
                                                         <td style='vertical-align: middle; text-align: left;'>
                                                             <h1 style='margin: 0; color: #2d3748; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets e Incidencias</h1>
-                                                            <p style='margin: 5px 0 0 0; color: #718096; font-size: 16px; line-height: 1.2;'>COOPEFACSA R.L.</p>
+                                                            <p style='margin: 5px 0 0 0; color: #718096; font-size: 16px; line-height: 1.2; text-align: center;'>COOPEFACSA R.L.</p>
                                                         </td>
                                                     </tr>
                                                 </table>
