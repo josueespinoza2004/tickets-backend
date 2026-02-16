@@ -54,7 +54,7 @@ try {
         
         // Crear directorio si no existe
         if (!is_dir($uploadDir)) {
-            if (!mkdir($uploadDir, 0777, true)) {
+            if (!mkdir($uploadDir, 0755, true)) {
                 throw new Exception("No se pudo crear el directorio de uploads");
             }
         }
@@ -68,6 +68,8 @@ try {
         $targetPath = $uploadDir . $fileName;
 
         if (move_uploaded_file($_FILES['evidence_file']['tmp_name'], $targetPath)) {
+            // Establecer permisos del archivo para que sea legible
+            chmod($targetPath, 0644);
             // Save relative path
             $evidencePath = 'uploads/' . $fileName;
         } else {
