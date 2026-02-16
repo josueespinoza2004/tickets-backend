@@ -30,7 +30,16 @@ try {
     $email = $data['email'];
     $password = $data['password'];
 
-    $stmt = $pdo->prepare("SELECT id, email, password, full_name, role, branch_id FROM users WHERE email = :email LIMIT 1");
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.email, u.password, u.full_name, u.role, u.branch_id, u.area_id, u.cargo,
+               b.name as branch_name,
+               a.name as area_name
+        FROM users u
+        LEFT JOIN branches b ON u.branch_id = b.id
+        LEFT JOIN areas a ON u.area_id = a.id
+        WHERE u.email = :email 
+        LIMIT 1
+    ");
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
 
