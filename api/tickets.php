@@ -30,6 +30,8 @@ try {
         $sql = "SELECT i.*, 
                        u.full_name as creator_name, 
                        u.email as creator_email,
+                       u.cargo as creator_cargo,
+                       creator_area.name as creator_area_name,
                        b.name as branch_name,
                        a.name as area_name,
                        (SELECT GROUP_CONCAT(COALESCE(full_name, email) SEPARATOR ', ') 
@@ -37,6 +39,7 @@ try {
                         WHERE FIND_IN_SET(users.id, REPLACE(i.assigned_to, ' ', ''))) as assigned_to_name
                 FROM incidents i
                 LEFT JOIN users u ON i.creator_id = u.id
+                LEFT JOIN areas creator_area ON u.area_id = creator_area.id
                 LEFT JOIN branches b ON i.branch_id = b.id
                 LEFT JOIN areas a ON i.area_id = a.id";
 
