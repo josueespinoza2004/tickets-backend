@@ -73,8 +73,8 @@ try {
                                                             <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDCa-jCPCvDE4kHKJP3pKyfMZjTqcwsxLliQ&s' alt='COOPEFACSA Logo' style='width: 70px; height: auto; display: block;' />
                                                         </td>
                                                         <td style='vertical-align: middle; text-align: left;'>
-                                                            <h1 style='margin: 0; color: #1e3a8a; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets</h1>
-                                                            <p style='margin: 5px 0 0 0; color: #6b7280; font-size: 16px; line-height: 1.2;'>COOPEFACSA R.L.</p>
+                                                            <h1 style='margin: 0; color: #2d3748; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets e Incidencias</h1>
+                                                            <p style='margin: 5px 0 0 0; color: #718096; font-size: 16px; line-height: 1.2;'>COOPEFACSA R.L.</p>
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -87,7 +87,7 @@ try {
                             <!-- Línea separadora -->
                             <tr>
                                 <td style='padding: 0 40px;'>
-                                    <div style='height: 3px; background-color: #1e3a8a;'></div>
+                                    <div style='height: 3px; background-color: #2d3748;'></div>
                                 </td>
                             </tr>
                             
@@ -109,8 +109,8 @@ try {
                                     <!-- Código en caja -->
                                     <table width='100%' cellpadding='0' cellspacing='0' style='margin: 0 0 20px 0;'>
                                         <tr>
-                                            <td style='padding: 30px; background-color: #ffffff; border: 3px solid #1e3a8a; border-radius: 8px; text-align: center;'>
-                                                <span style='font-size: 48px; font-weight: bold; color: #1e3a8a; letter-spacing: 12px;'>" . $code . "</span>
+                                            <td style='padding: 30px; background-color: #ffffff; border: 3px solid #2d3748; border-radius: 8px; text-align: center;'>
+                                                <span style='font-size: 48px; font-weight: bold; color: #2d3748; letter-spacing: 12px;'>" . $code . "</span>
                                             </td>
                                         </tr>
                                     </table>
