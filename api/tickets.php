@@ -61,6 +61,12 @@ try {
 
         $input = json_decode(file_get_contents('php://input'), true);
 
+        // Obtener el estado anterior del ticket y datos del creador
+        $oldTicketStmt = $pdo->prepare("SELECT status, creator_id, title, description FROM incidents WHERE id = ?");
+        $oldTicketStmt->execute([$id]);
+        $oldTicket = $oldTicketStmt->fetch();
+        $oldStatus = $oldTicket['status'] ?? null;
+
         // Basic permission check: Admin can update anything. User can update maybe only if Open? 
         // For simplicity: Admin updates status/assignee. User can update description?
         // Let's allow simple updates for now.
@@ -122,6 +128,138 @@ try {
         $sql = "UPDATE incidents SET " . implode(', ', $fields) . " WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
+
+        // Enviar correo si el estado cambió a "Listo"
+        $newStatus = $input['status'] ?? null;
+        if ($newStatus === 'Listo' && $oldStatus !== 'Listo' && $oldTicket) {
+            // Obtener información del creador del ticket
+            $creatorStmt = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
+            $creatorStmt->execute([$oldTicket['creator_id']]);
+            $creator = $creatorStmt->fetch();
+
+            if ($creator && $creator['email']) {
+                require_once __DIR__ . '/../send_email.php';
+                
+                $htmlBody = "
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    </head>
+                    <body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;'>
+                        <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f3f4f6; padding: 40px 20px;'>
+                            <tr>
+                                <td align='center'>
+                                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden;'>
+                                        <!-- Header con logo -->
+                                        <tr>
+                                            <td style='padding: 40px 40px 30px 40px; background-color: #ffffff;'>
+                                                <table width='100%' cellpadding='0' cellspacing='0'>
+                                                    <tr>
+                                                        <td style='vertical-align: middle; text-align: center;'>
+                                                            <table cellpadding='0' cellspacing='0' style='display: inline-block;'>
+                                                                <tr>
+                                                                    <td style='vertical-align: middle; padding-right: 15px;'>
+                                                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDCa-jCPCvDE4kHKJP3pKyfMZjTqcwsxLliQ&s' alt='COOPEFACSA Logo' style='width: 70px; height: auto; display: block;' />
+                                                                    </td>
+                                                                    <td style='vertical-align: middle; text-align: left;'>
+                                                                        <h1 style='margin: 0; color: #2d3748; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets e Incidencias</h1>
+                                                                        <p style='margin: 5px 0 0 0; color: #718096; font-size: 16px; line-height: 1.2; text-align: center;'>COOPEFACSA R.L.</p>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Línea separadora -->
+                                        <tr>
+                                            <td style='padding: 0 40px;'>
+                                                <div style='height: 3px; background-color: #2d3748;'></div>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Contenido principal -->
+                                        <tr>
+                                            <td style='padding: 40px; background-color: #f9fafb;'>
+                                                <h2 style='margin: 0 0 20px 0; color: #374151; font-size: 24px; font-weight: bold;'>
+                                                    Hola " . htmlspecialchars($creator['full_name'] ?: 'Usuario') . ",
+                                                </h2>
+                                                
+                                                <p style='margin: 0 0 15px 0; color: #6b7280; font-size: 16px; line-height: 1.5;'>
+                                                    Tu incidencia ha sido <strong style='color: #16a34a;'>resuelta</strong> exitosamente.
+                                                </p>
+                                                
+                                                <p style='margin: 0 0 20px 0; color: #6b7280; font-size: 16px; line-height: 1.5;'>
+                                                    Detalles de la incidencia:
+                                                </p>
+                                                
+                                                <!-- Detalles en caja -->
+                                                <table width='100%' cellpadding='0' cellspacing='0' style='margin: 0 0 20px 0;'>
+                                                    <tr>
+                                                        <td style='padding: 25px; background-color: #ffffff; border: 2px solid #e5e7eb; border-radius: 8px;'>
+                                                            <table width='100%' cellpadding='0' cellspacing='0'>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>ID de Ticket:</strong>
+                                                                        <span style='color: #6b7280;'> #" . $id . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Título:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($oldTicket['title']) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Descripción:</strong>
+                                                                        <div style='color: #6b7280; margin-top: 5px;'>" . nl2br(htmlspecialchars($oldTicket['description'])) . "</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Estado:</strong>
+                                                                        <span style='display: inline-block; padding: 4px 12px; background-color: #dcfce7; color: #166534; border-radius: 12px; font-size: 14px; font-weight: bold;'>Listo</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <p style='margin: 0; color: #6b7280; font-size: 15px; line-height: 1.5;'>
+                                                    Gracias por tu paciencia. Si tienes alguna pregunta o necesitas asistencia adicional, no dudes en contactarnos.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Footer -->
+                                        <tr>
+                                            <td style='padding: 30px 40px; background-color: #ffffff; text-align: center;'>
+                                                <p style='margin: 0 0 10px 0; color: #9ca3af; font-size: 13px;'>
+                                                    Este es un correo automático, por favor no respondas.
+                                                </p>
+                                                <p style='margin: 0; color: #9ca3af; font-size: 12px;'>
+                                                    © 2026 COOPEFACSA R.L. - Todos los derechos reservados
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>
+                ";
+                
+                // Enviar email (no bloqueante)
+                sendEmail($creator['email'], 'Incidencia Resuelta - COOPEFACSA', $htmlBody, true);
+            }
+        }
 
         echo json_encode(['success' => true]);
 

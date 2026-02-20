@@ -94,7 +94,163 @@ try {
         ':evidence_file' => $evidencePath
     ]);
 
-    echo json_encode(['success' => true, 'id' => $pdo->lastInsertId(), 'message' => 'Ticket created successfully']);
+    $ticketId = $pdo->lastInsertId();
+
+    // Obtener información del usuario creador
+    $userStmt = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
+    $userStmt->execute([$userId]);
+    $user = $userStmt->fetch();
+
+    // Enviar correo a los ADMINISTRADORES notificando la nueva incidencia
+    $adminStmt = $pdo->query("SELECT email, full_name FROM users WHERE role = 'admin'");
+    $admins = $adminStmt->fetchAll();
+
+    if ($admins && count($admins) > 0) {
+        require_once __DIR__ . '/../send_email.php';
+        
+        foreach ($admins as $admin) {
+            if ($admin['email']) {
+                $htmlBody = "
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    </head>
+                    <body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;'>
+                        <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f3f4f6; padding: 40px 20px;'>
+                            <tr>
+                                <td align='center'>
+                                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden;'>
+                                        <!-- Header con logo -->
+                                        <tr>
+                                            <td style='padding: 40px 40px 30px 40px; background-color: #ffffff;'>
+                                                <table width='100%' cellpadding='0' cellspacing='0'>
+                                                    <tr>
+                                                        <td style='vertical-align: middle; text-align: center;'>
+                                                            <table cellpadding='0' cellspacing='0' style='display: inline-block;'>
+                                                                <tr>
+                                                                    <td style='vertical-align: middle; padding-right: 15px;'>
+                                                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDCa-jCPCvDE4kHKJP3pKyfMZjTqcwsxLliQ&s' alt='COOPEFACSA Logo' style='width: 70px; height: auto; display: block;' />
+                                                                    </td>
+                                                                    <td style='vertical-align: middle; text-align: left;'>
+                                                                        <h1 style='margin: 0; color: #2d3748; font-size: 28px; font-weight: bold; line-height: 1.2;'>Gestión de Tickets e Incidencias</h1>
+                                                                        <p style='margin: 5px 0 0 0; color: #718096; font-size: 16px; line-height: 1.2; text-align: center;'>COOPEFACSA R.L.</p>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Línea separadora -->
+                                        <tr>
+                                            <td style='padding: 0 40px;'>
+                                                <div style='height: 3px; background-color: #2d3748;'></div>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Contenido principal -->
+                                        <tr>
+                                            <td style='padding: 40px; background-color: #f9fafb;'>
+                                                <h2 style='margin: 0 0 20px 0; color: #374151; font-size: 24px; font-weight: bold;'>
+                                                    Hola " . htmlspecialchars($admin['full_name'] ?: 'Administrador') . ",
+                                                </h2>
+                                                
+                                                <p style='margin: 0 0 15px 0; color: #6b7280; font-size: 16px; line-height: 1.5;'>
+                                                    Se ha registrado una nueva incidencia en el sistema.
+                                                </p>
+                                                
+                                                <p style='margin: 0 0 20px 0; color: #6b7280; font-size: 16px; line-height: 1.5;'>
+                                                    Detalles de la incidencia:
+                                                </p>
+                                                
+                                                <!-- Detalles en caja -->
+                                                <table width='100%' cellpadding='0' cellspacing='0' style='margin: 0 0 20px 0;'>
+                                                    <tr>
+                                                        <td style='padding: 25px; background-color: #ffffff; border: 2px solid #e5e7eb; border-radius: 8px;'>
+                                                            <table width='100%' cellpadding='0' cellspacing='0'>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>ID de Ticket:</strong>
+                                                                        <span style='color: #6b7280;'> #" . $ticketId . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Reportado por:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($user['full_name'] ?: $user['email']) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Título:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($title) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Descripción:</strong>
+                                                                        <div style='color: #6b7280; margin-top: 5px;'>" . nl2br(htmlspecialchars($description)) . "</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Prioridad:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($priority) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Estado:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($status) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Fecha:</strong>
+                                                                        <span style='color: #6b7280;'> " . ($incident_date ? date('d/m/Y', strtotime($incident_date)) : 'No especificada') . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <p style='margin: 0; color: #6b7280; font-size: 15px; line-height: 1.5;'>
+                                                    Por favor, revisa y atiende esta incidencia lo antes posible.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Footer -->
+                                        <tr>
+                                            <td style='padding: 30px 40px; background-color: #ffffff; text-align: center;'>
+                                                <p style='margin: 0 0 10px 0; color: #9ca3af; font-size: 13px;'>
+                                                    Este es un correo automático, por favor no respondas.
+                                                </p>
+                                                <p style='margin: 0; color: #9ca3af; font-size: 12px;'>
+                                                    © 2026 COOPEFACSA R.L. - Todos los derechos reservados
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>
+                ";
+                
+                // Enviar email a cada administrador
+                sendEmail($admin['email'], 'Nueva Incidencia Registrada - COOPEFACSA', $htmlBody, true);
+            }
+        }
+    }
+
+    echo json_encode(['success' => true, 'id' => $ticketId, 'message' => 'Ticket created successfully']);
 
 } catch (Exception $e) {
     http_response_code(500);
