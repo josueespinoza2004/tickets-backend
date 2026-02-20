@@ -132,6 +132,18 @@ try {
         // Enviar correo si el estado cambió a "Listo"
         $newStatus = $input['status'] ?? null;
         if ($newStatus === 'Listo' && $oldStatus !== 'Listo' && $oldTicket) {
+            // Obtener información completa del ticket incluyendo assigned_to
+            $ticketInfoStmt = $pdo->prepare("
+                SELECT i.priority, i.assigned_to,
+                       (SELECT GROUP_CONCAT(COALESCE(full_name, email) SEPARATOR ', ') 
+                        FROM users 
+                        WHERE FIND_IN_SET(users.id, REPLACE(i.assigned_to, ' ', ''))) as assigned_to_names
+                FROM incidents i
+                WHERE i.id = ?
+            ");
+            $ticketInfoStmt->execute([$id]);
+            $ticketInfo = $ticketInfoStmt->fetch();
+            
             // Obtener información del creador del ticket
             $creatorStmt = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
             $creatorStmt->execute([$oldTicket['creator_id']]);
@@ -139,6 +151,8 @@ try {
 
             if ($creator && $creator['email']) {
                 require_once __DIR__ . '/../send_email.php';
+                
+                $resolvedBy = $ticketInfo['assigned_to_names'] ?: 'No asignado';
                 
                 $htmlBody = "
                     <!DOCTYPE html>
@@ -204,12 +218,6 @@ try {
                                                             <table width='100%' cellpadding='0' cellspacing='0'>
                                                                 <tr>
                                                                     <td style='padding: 8px 0;'>
-                                                                        <strong style='color: #374151;'>ID de Ticket:</strong>
-                                                                        <span style='color: #6b7280;'> #" . $id . "</span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='padding: 8px 0;'>
                                                                         <strong style='color: #374151;'>Título:</strong>
                                                                         <span style='color: #6b7280;'> " . htmlspecialchars($oldTicket['title']) . "</span>
                                                                     </td>
@@ -218,6 +226,18 @@ try {
                                                                     <td style='padding: 8px 0;'>
                                                                         <strong style='color: #374151;'>Descripción:</strong>
                                                                         <div style='color: #6b7280; margin-top: 5px;'>" . nl2br(htmlspecialchars($oldTicket['description'])) . "</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Tipo:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($ticketInfo['priority']) . "</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style='padding: 8px 0;'>
+                                                                        <strong style='color: #374151;'>Resuelta por:</strong>
+                                                                        <span style='color: #6b7280;'> " . htmlspecialchars($resolvedBy) . "</span>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
