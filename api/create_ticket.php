@@ -96,20 +96,24 @@ try {
 
     $ticketId = $pdo->lastInsertId();
 
-    // Obtener información del usuario creador
-    $userStmt = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
+    // Obtener información del usuario creador incluyendo su rol
+    $userStmt = $pdo->prepare("SELECT full_name, email, role FROM users WHERE id = ?");
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch();
 
-    // Enviar correo a los ADMINISTRADORES notificando la nueva incidencia
-    $adminStmt = $pdo->query("SELECT email, full_name FROM users WHERE role = 'admin'");
-    $admins = $adminStmt->fetchAll();
+    // Solo enviar correo a los administradores si el creador NO es admin
+    $isCreatorAdmin = ($user && $user['role'] === 'admin');
+    
+    if (!$isCreatorAdmin) {
+        // Enviar correo a los ADMINISTRADORES notificando la nueva incidencia
+        $adminStmt = $pdo->query("SELECT email, full_name FROM users WHERE role = 'admin'");
+        $admins = $adminStmt->fetchAll();
 
-    if ($admins && count($admins) > 0) {
-        require_once __DIR__ . '/../send_email.php';
-        
-        foreach ($admins as $admin) {
-            if ($admin['email']) {
+        if ($admins && count($admins) > 0) {
+            require_once __DIR__ . '/../send_email.php';
+            
+            foreach ($admins as $admin) {
+                if ($admin['email']) {
                 $htmlBody = "
                     <!DOCTYPE html>
                     <html>
@@ -247,6 +251,7 @@ try {
                 // Enviar email a cada administrador
                 sendEmail($admin['email'], 'Nueva Incidencia Registrada - COOPEFACSA', $htmlBody, true);
             }
+        }
         }
     }
 
