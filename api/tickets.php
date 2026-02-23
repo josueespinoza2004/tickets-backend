@@ -24,6 +24,7 @@ try {
     $stmt->execute([$userId]);
     $currentUser = $stmt->fetch();
     $isAdmin = ($currentUser['role'] === 'admin');
+    $isGerente = ($currentUser['role'] === 'gerente');
 
     if ($method === 'GET') {
         // GET: List tickets
@@ -43,8 +44,8 @@ try {
                 LEFT JOIN branches b ON i.branch_id = b.id
                 LEFT JOIN areas a ON i.area_id = a.id";
 
-        // Filter logic: Admin sees all, User sees only created by them (or assigned to them if they were support staff)
-        if (!$isAdmin) {
+        // Filter logic: Admin/Gerente sees all, User sees only created by them
+        if (!$isAdmin && !$isGerente) {
             $sql .= " WHERE i.creator_id = " . $pdo->quote($userId);
         }
 
@@ -67,14 +68,13 @@ try {
         $oldTicket = $oldTicketStmt->fetch();
         $oldStatus = $oldTicket['status'] ?? null;
 
-        // Basic permission check: Admin can update anything. User can update maybe only if Open? 
-        // For simplicity: Admin updates status/assignee. User can update description?
-        // Let's allow simple updates for now.
-
+        // Basic permission check: Admin can update anything. Gerente cannot update. User can update maybe only if Open? 
+        // For simplicity: Only Admin can update tickets
+        
         $fields = [];
         $params = [];
 
-        // Admin fields (also allow editing core details)
+        // Admin fields (only admins can edit)
         if ($isAdmin) {
             if (isset($input['status'])) {
                 $fields[] = "status = ?";
@@ -284,7 +284,7 @@ try {
         echo json_encode(['success' => true]);
 
     } elseif ($method === 'DELETE') {
-        // DELETE
+        // DELETE - Only admins can delete
         if (!$isAdmin) {
             http_response_code(403);
             echo json_encode(['error' => 'Only admins can delete tickets']);

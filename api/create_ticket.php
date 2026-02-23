@@ -101,11 +101,12 @@ try {
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch();
 
-    // Solo enviar correo a los administradores si el creador NO es admin
+    // Solo enviar correo a los administradores si el creador NO es admin ni gerente
     $isCreatorAdmin = ($user && $user['role'] === 'admin');
+    $isCreatorGerente = ($user && $user['role'] === 'gerente');
     
-    if (!$isCreatorAdmin) {
-        // Enviar correo a los ADMINISTRADORES notificando la nueva incidencia
+    if (!$isCreatorAdmin && !$isCreatorGerente) {
+        // Enviar correo solo a ADMINISTRADORES (no a gerentes)
         $adminStmt = $pdo->query("SELECT email, full_name FROM users WHERE role = 'admin'");
         $admins = $adminStmt->fetchAll();
 
